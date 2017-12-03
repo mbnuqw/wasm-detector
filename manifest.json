@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "WebAssembly Detector",
-  "version": "1.1.0",
+  "version": "1.1.1",
 
   "description": "Detects loading of WebAssembly file.",
   "homepage_url": "https://github.com/mbnuqw/wasm-detector",
