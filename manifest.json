@@ -14,10 +14,10 @@
   "page_action": {
     "browser_style": true,
     "default_icon": {
-      "19": "./assets/icons/wa-16_text.png",
-      "38": "./assets/icons/wa-32_text.png"
+      "19": "./assets/icons/wa-16_text_inact.png",
+      "38": "./assets/icons/wa-32_text_inact.png"
     },
-    "default_title": "WebAssembly Detected"
+    "default_title": "WebAssembly not detected"
   },
 
   "background": {
