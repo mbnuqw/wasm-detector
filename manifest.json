@@ -9,7 +9,7 @@
     "48": "./assets/icons/wa-48.png",
     "96": "./assets/icons/wa-96.png"
   },
-  "permissions": ["webRequest", "<all_urls>"],
+  "permissions": ["webRequest", "tabs", "<all_urls>"],
 
   "page_action": {
     "browser_style": true,
