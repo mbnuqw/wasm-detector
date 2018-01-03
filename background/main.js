@@ -93,13 +93,3 @@ window.browser.tabs.onRemoved.addListener(tabId => {
   let targetIndex = WATabs.findIndex(t => t.id === tabId)
   if (targetIndex !== -1) WATabs.splice(targetIndex, 1)
 })
-
-// Handle tab updates
-window.browser.tabs.onUpdated.addListener((id, info) => {
-  if (info.status !== 'complete') return
-
-  let targetTab = WATabs.find(t => t.id === id)
-  if (!targetTab) return
-
-  if (info.url) UpdatePageAction(targetTab)
-})
