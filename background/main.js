@@ -1,15 +1,20 @@
 const WasmExtRGX = /\.wasm$|\.wasm\.gz$/i
 const WATabs = []
+const Methods = {
+  decompress: true,
+  signature: true,
+  mime: true,
+}
 
 /**
-*  Update pageAction: title, icon, popup
-**/
+ *  Update pageAction: title, icon, popup
+ **/
 function UpdatePageAction(tab) {
   if (!tab.wasm.length) {
     window.browser.pageAction.hide(tab.id)
     window.browser.pageAction.setTitle({
       tabId: tab.id,
-      title: 'WebAssembly not detected',
+      title: browser.i18n.getMessage('PageActionTitleN'),
     })
     window.browser.pageAction.setIcon({
       tabId: tab.id,
@@ -26,7 +31,7 @@ function UpdatePageAction(tab) {
     window.browser.pageAction.show(tab.id)
     window.browser.pageAction.setTitle({
       tabId: tab.id,
-      title: 'WebAssembly detected',
+      title: browser.i18n.getMessage('PageActionTitleY'),
     })
     window.browser.pageAction.setIcon({
       tabId: tab.id,
@@ -37,10 +42,75 @@ function UpdatePageAction(tab) {
     })
     window.browser.pageAction.setPopup({
       tabId: tab.id,
-      popup: './assets/wa-list.html',
+      popup: './popups/wa-list.html',
     })
   }
 }
+
+/**
+ *  Check
+ *
+ * > req: Object - Details of the request.
+ * > cb: (req: RequestDetails) => any - Fires when wasm was detected.
+ **/
+function DetectWasm(req, cb) {
+  // Check header
+  let contentType = req.responseHeaders.find(h => h.name === 'Content-Type')
+  if (contentType) contentType = contentType.value
+  if (contentType === 'application/wasm') return cb(req)
+
+  // Check signature
+  if (!Methods.signature) return
+  let filter = browser.webRequest.filterResponseData(req.requestId)
+  filter.ondata = e => {
+    // First data-chunk is enough
+    filter.write(e.data)
+    filter.disconnect()
+
+    const sig = new Uint8ClampedArray(e.data, 0, 4)
+
+    // Wasm signature
+    if (
+      sig[0] === 0x00 &&
+      sig[1] === 0x61 &&
+      sig[2] === 0x73 &&
+      sig[3] === 0x6d
+    ) {
+      return cb(req)
+    }
+
+    // GZIPed data
+    if (!Methods.decompress) return
+    if (sig[0] === 0x1f && sig[1] === 0x8b) {
+      const gzLen = e.data.byteLength < 32768 ? e.data.byteLength : 32768
+      const gziped = new Uint8ClampedArray(e.data, 0, gzLen)
+
+      let unziped
+      try {
+        unziped = pako.inflate(gziped)
+      } catch (e) {
+        return
+      }
+
+      if (
+        unziped[0] === 0x00 &&
+        unziped[1] === 0x61 &&
+        unziped[2] === 0x73 &&
+        unziped[3] === 0x6d
+      ) {
+        return cb(req)
+      }
+    }
+  }
+}
+
+// Get stored settings
+browser.storage.local.get('methods').then(stored => {
+  if (!stored.methods) return
+  Methods.decompress = stored.methods.decompress
+  Methods.signature = stored.methods.signature
+  Methods.mime = stored.methods.mime
+})
 
 // Setup communication with popup
 window.browser.runtime.onConnect.addListener(port => {
@@ -56,40 +126,48 @@ window.browser.webRequest.onHeadersReceived.addListener(
     // Reset wasm popup for this tab
     if (!req.documentUrl && req.parentFrameId === -1) {
       let targetTab = WATabs.find(t => t.id === req.tabId)
-      targetTab.wasm = []
-      UpdatePageAction(targetTab)
+      if (targetTab) {
+        targetTab.wasm = []
+        UpdatePageAction(targetTab)
+      }
       return
     }
 
-    let contentType = req.responseHeaders.find(h => h.name === 'Content-Type')
-    if (contentType) contentType = contentType.value
-    if (contentType !== 'application/wasm' && !WasmExtRGX.test(req.url)) return
+    DetectWasm(req, req => {
+      let targetTab = WATabs.find(t => t.id === req.tabId)
 
-    let targetTab = WATabs.find(t => t.id === req.tabId)
-
-    if (targetTab) {
-      // Add new ws url
-      if (targetTab.wasm.indexOf(req.url) === -1) targetTab.wasm.push(req.url)
-    } else {
-      // Create
-      targetTab = {
-        id: req.tabId,
-        originUrl: req.originUrl,
-        wasm: [req.url],
+      if (targetTab) {
+        // Add new ws url
+        if (targetTab.wasm.indexOf(req.url) === -1) targetTab.wasm.push(req.url)
+      } else {
+        // Create
+        targetTab = {
+          id: req.tabId,
+          originUrl: req.originUrl,
+          wasm: [req.url],
+        }
+        WATabs.push(targetTab)
       }
-      WATabs.push(targetTab)
-    }
 
-    UpdatePageAction(targetTab)
+      UpdatePageAction(targetTab)
+    })
   },
   {
     urls: ['<all_urls>'],
   },
-  ['responseHeaders']
+  ['responseHeaders', 'blocking']
 )
 
 // Handle tab closing
 window.browser.tabs.onRemoved.addListener(tabId => {
   let targetIndex = WATabs.findIndex(t => t.id === tabId)
   if (targetIndex !== -1) WATabs.splice(targetIndex, 1)
+})
+
+// Handle settings change
+browser.storage.onChanged.addListener(changes => {
+  if (!changes.methods) return
+  Methods.decompress = changes.methods.newValue.decompress
+  Methods.signature = changes.methods.newValue.signature
+  Methods.mime = changes.methods.newValue.mime
 })

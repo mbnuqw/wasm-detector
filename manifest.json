@@ -1,15 +1,28 @@
 {
+  "applications": {
+    "gecko": {
+      "id": "{eb17953d-f711-471c-8758-62ed565fb343}",
+      "strict_min_version": "52.0"
+    }
+  },
   "manifest_version": 2,
-  "name": "WebAssembly Detector",
+  "name": "__MSG_ExtName__",
   "version": "1.2.3",
-
-  "description": "Detects loading of WebAssembly file.",
+  "default_locale": "en",
+  "description": "__MSG_ExtDesc__",
   "homepage_url": "https://github.com/mbnuqw/wasm-detector",
   "icons": {
     "48": "./assets/icons/wa-48.png",
     "96": "./assets/icons/wa-96.png"
   },
-  "permissions": ["webRequest", "tabs", "<all_urls>"],
+
+  "permissions": [
+    "webRequest",
+    "tabs",
+    "webRequestBlocking",
+    "storage",
+    "<all_urls>"
+  ],
 
   "page_action": {
     "browser_style": true,
@@ -17,10 +30,15 @@
       "19": "./assets/icons/wa-16_text_inact.png",
       "38": "./assets/icons/wa-32_text_inact.png"
     },
-    "default_title": "WebAssembly not detected"
+    "default_title": "__MSG_PageActionTitleN__"
+  },
+
+  "options_ui": {
+    "page": "settings/settings.html",
+    "browser_style": false
   },
 
   "background": {
-    "scripts": ["background/main.js"]
+    "scripts": ["background/main.js", "background/pako_inflate.js"]
   }
 }
