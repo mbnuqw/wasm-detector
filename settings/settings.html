@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="settings.css"/>
+</head>
+<body>
+    <div class="settings">
+        <h2 class="title" id="settings_methods_title">Detection methods</h2>
+        <div class="range-field">
+            <div class="field">
+                <input class="field-input" type="radio" name="wasm-check" id="decompress" checked="true">
+                <div class="field-connect"></div>
+
+                <div class="field">
+                    <input class="field-input" type="radio" name="wasm-check" id="signature">
+                    <div class="field-connect"></div>
+
+                    <div class="field">
+                        <input class="field-input" type="radio" name="wasm-check" id="mime">
+                    </div>
+                </div>
+            </div>
+            <div class="labels">
+                <label class="field-label" for="decompress" id="settings_methods_decomp_label">Decompress gziped files</label>
+                <label class="field-label" for="signature" id="settings_methods_sign_label">Check file's signature</label>
+                <label class="field-label" for="mime" id="settings_methods_mime_label">Check only request's mime-type</label>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>

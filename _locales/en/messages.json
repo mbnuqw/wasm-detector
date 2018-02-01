@@ -1,0 +1,29 @@
+{
+  "ExtName": {
+    "message": "WebAssembly Detector"
+  },
+
+  "ExtDesc": {
+    "message": "Detects loading of WebAssembly file."
+  },
+
+  "PageActionTitleN": {
+    "message": "WebAssembly not detected"
+  },
+  "PageActionTitleY": {
+    "message": "WebAssembly detected"
+  },
+
+  "SettingsMethodsTitle": {
+    "message": "Detection methods"
+  },
+  "SettingsMethodsDecomp": {
+    "message": "Decompress gziped files"
+  },
+  "SettingsMethodsSign": {
+    "message": "Check file's signature"
+  },
+  "SettingsMethodsMime": {
+    "message": "Check only request's mime-type"
+  }
+}

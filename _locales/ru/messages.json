@@ -1,0 +1,29 @@
+{
+  "ExtName": {
+    "message": "WebAssembly детектор"
+  },
+
+  "ExtDesc": {
+    "message": "Обнаруживает загрузку WebAssembly файлов."
+  },
+
+  "PageActionTitleN": {
+    "message": "WebAssembly не обнаружен"
+  },
+  "PageActionTitleY": {
+    "message": "WebAssembly обнаружен"
+  },
+
+  "SettingsMethodsTitle": {
+    "message": "Методы обнаружения"
+  },
+  "SettingsMethodsDecomp": {
+    "message": "Распаковывать сжатые файлы"
+  },
+  "SettingsMethodsSign": {
+    "message": "Проверять сигнатуру файлов"
+  },
+  "SettingsMethodsMime": {
+    "message": "Проверять только mime тип запроса"
+  }
+}
