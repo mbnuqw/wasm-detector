@@ -1,10 +1,13 @@
-const WasmExtRGX = /\.wasm$|\.wasm\.gz$/i
 const WATabs = []
 const Methods = {
   decompress: true,
   signature: true,
   mime: true,
 }
+const ContentTypeRGX = /content-type/i
+const WasmMimeRGX = /application\/wasm/i
+const JsonMimeRGX = /application\/json/i
+const JsMimeRGX = /application\/(javascript|x-javascript)/i
 
 /**
  *  Update pageAction: title, icon, popup
@@ -54,10 +57,20 @@ function UpdatePageAction(tab) {
  * > cb: (req: RequestDetails) => any - Fires when wasm was detected.
  **/
 function DetectWasm(req, cb) {
-  // Check header
-  let contentType = req.responseHeaders.find(h => h.name === 'Content-Type')
+  // Get content type from header
+  let contentType = req.responseHeaders.find(h => ContentTypeRGX.test(h.name))
   if (contentType) contentType = contentType.value
-  if (contentType === 'application/wasm') return cb(req)
+
+  // Check mime types and ignore non-application type
+  if (contentType) {
+    if (WasmMimeRGX.test(contentType)) return cb(req)
+    else if (contentType.indexOf('application/') === -1) return
+
+    // Exclude json and javascript
+    if (JsonMimeRGX.test(contentType) || JsMimeRGX.test(contentType)) return
+  } else {
+    return
+  }
 
   // Check signature
   if (!Methods.signature) return
@@ -67,6 +80,8 @@ function DetectWasm(req, cb) {
     filter.write(e.data)
     filter.disconnect()
 
+    // Ignore too small chunks
+    if (e.data.byteLength < 1024) return
     const sig = new Uint8ClampedArray(e.data, 0, 4)
 
     // Wasm signature
@@ -113,7 +128,7 @@ browser.storage.local.get('methods').then(stored => {
 })
 
 // Setup communication with popup
-window.browser.runtime.onConnect.addListener(port => {
+browser.runtime.onConnect.addListener(port => {
   // Send message to popup with active tab info
   browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
     port.postMessage(WATabs.find(t => t.id === tabs[0].id))
@@ -121,7 +136,7 @@ window.browser.runtime.onConnect.addListener(port => {
 })
 
 // Handle requests
-window.browser.webRequest.onHeadersReceived.addListener(
+browser.webRequest.onHeadersReceived.addListener(
   req => {
     // Reset wasm popup for this tab
     if (!req.documentUrl && req.parentFrameId === -1) {
@@ -159,7 +174,7 @@ window.browser.webRequest.onHeadersReceived.addListener(
 )
 
 // Handle tab closing
-window.browser.tabs.onRemoved.addListener(tabId => {
+browser.tabs.onRemoved.addListener(tabId => {
   let targetIndex = WATabs.findIndex(t => t.id === tabId)
   if (targetIndex !== -1) WATabs.splice(targetIndex, 1)
 })

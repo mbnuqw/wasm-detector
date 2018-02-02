@@ -49,4 +49,5 @@ browser.storage.local.get('methods').then(stored => {
   if (!stored.methods) return
   if (stored.methods.decompress) MethodsDecompressInputEl.checked = true
   else if (stored.methods.signature) MethodsSignatureInputEl.checked = true
+  else MethodsMimeInputEl.checked = true
 })
