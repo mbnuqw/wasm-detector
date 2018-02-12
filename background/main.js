@@ -6,8 +6,6 @@ const Methods = {
 }
 const ContentTypeRGX = /content-type/i
 const WasmMimeRGX = /application\/wasm/i
-const JsonMimeRGX = /application\/json/i
-const JsMimeRGX = /application\/(javascript|x-javascript)/i
 
 /**
  *  Update pageAction: title, icon, popup
@@ -62,19 +60,12 @@ function DetectWasm(req, cb) {
   if (contentType) contentType = contentType.value
 
   // Check mime types and ignore non-application type
-  if (contentType) {
-    if (WasmMimeRGX.test(contentType)) return cb(req)
-    else if (contentType.indexOf('application/') === -1) return
-
-    // Exclude json and javascript
-    if (JsonMimeRGX.test(contentType) || JsMimeRGX.test(contentType)) return
-  } else {
-    return
-  }
+  if (contentType && WasmMimeRGX.test(contentType)) return cb(req)
 
   // Check signature
   if (!Methods.signature) return
   let filter = browser.webRequest.filterResponseData(req.requestId)
+  filter.onstop = e => filter.disconnect()
   filter.ondata = e => {
     // First data-chunk is enough
     filter.write(e.data)
@@ -147,6 +138,10 @@ browser.webRequest.onHeadersReceived.addListener(
       }
       return
     }
+
+    //  The only possible way (for the moment) to load wasm is to use
+    // XmlHttpRequest or fetch.
+    if (req.type !== 'xmlhttprequest') return
 
     DetectWasm(req, req => {
       let targetTab = WATabs.find(t => t.id === req.tabId)
