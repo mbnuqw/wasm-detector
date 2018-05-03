@@ -3,7 +3,7 @@
   "version": "1.3.6",
   "description": "WebExtension for detecting WebAssembly on the web-page.",
   "scripts": {
-    "dev": "./node_modules/.bin/web-ext run -f firefox-trunk",
+    "dev": "./node_modules/.bin/web-ext run -f firefox",
     "build":
       "./node_modules/.bin/web-ext build -a dist/ -i *.sublime-* *.lock ./package.json",
     "lint": "./node_modules/.bin/web-ext lint"
@@ -13,5 +13,12 @@
   "license": "MIT",
   "devDependencies": {
     "web-ext": "^2.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "useTabs": false
   }
 }
