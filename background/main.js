@@ -143,6 +143,9 @@ browser.webRequest.onHeadersReceived.addListener(
     // XmlHttpRequest or fetch.
     if (req.type !== 'xmlhttprequest') return
 
+    // Check only GET requests
+    if (req.method !== 'GET') return
+
     DetectWasm(req, req => {
       let targetTab = WATabs.find(t => t.id === req.tabId)
 
